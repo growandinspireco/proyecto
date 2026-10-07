@@ -1,0 +1,90 @@
+<%- include('partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Analíticas</h1>
+    <div class="muted small"><%= selectedUser ? 'Métricas de ' + selectedUser.name : 'Métricas generales del equipo' %></div>
+  </div>
+  <form method="get" class="actions" style="align-items:center">
+    <div class="tabs">
+      <% [['7','7 días'],['30','30 días'],['mes','Este mes'],['90','90 días'],['365','1 año']].forEach(function (r) { %>
+        <a class="<%= range === r[0] ? 'active' : '' %>" href="?range=<%= r[0] %><%= selectedUser && isAdmin ? '&user=' + selectedUser.id : '' %>"><%= r[1] %></a>
+      <% }) %>
+    </div>
+    <% if (isAdmin) { %>
+      <input type="hidden" name="range" value="<%= range %>">
+      <select name="user" data-autosubmit style="width:auto">
+        <option value="">Todo el equipo</option>
+        <% users.forEach(function (u) { %><option value="<%= u.id %>" <%= selectedUser && selectedUser.id === u.id ? 'selected' : '' %>><%= u.name %></option><% }) %>
+      </select>
+    <% } %>
+  </form>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">Leads nuevos</div><div class="value"><%= stats.newContacts %></div></div>
+  <div class="kpi"><div class="label">Ventas cerradas</div><div class="value"><%= stats.wonCount %></div><div class="sub"><%= stats.lostCount %> perdidas</div></div>
+  <div class="kpi"><div class="label">Ingresos</div><div class="value"><%= fmtMoney(stats.revenue) %></div><div class="sub">ticket prom. <%= fmtMoney(stats.avgTicket) %></div></div>
+  <div class="kpi"><div class="label">Conversión lead → venta</div><div class="value"><%= fmtPercent(stats.leadToSale) %></div><div class="sub">cierre <%= fmtPercent(stats.closeRate) %> (ganadas vs. perdidas)</div></div>
+  <div class="kpi"><div class="label">Citas</div><div class="value"><%= stats.apptTotal %></div><div class="sub">asistencia <%= fmtPercent(stats.showRate) %></div></div>
+  <div class="kpi"><div class="label">SMS</div><div class="value"><%= stats.smsOut + stats.smsIn %></div><div class="sub"><%= stats.smsOut %> enviados · <%= stats.smsIn %> recibidos</div></div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card"><h2>Leads nuevos por día</h2><div class="chart-box"><canvas id="chart-leads" aria-label="Leads nuevos por día"></canvas></div></div>
+  <div class="card"><h2>Ingresos por día</h2><div class="chart-box"><canvas id="chart-sales" aria-label="Ingresos por día"></canvas></div></div>
+</div>
+
+<div class="grid grid-2" style="margin-top:16px">
+  <div class="card">
+    <h2>Embudo del pipeline <span class="small muted">(estado actual)</span></h2>
+    <% const maxCount = Math.max(1, ...stats.pipeline.map(s => s.count)); %>
+    <% stats.pipeline.forEach(function (s) { %>
+      <div style="margin-bottom:10px">
+        <div style="display:flex; justify-content:space-between" class="small"><span><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:<%= s.color %>;margin-right:6px"></span><%= s.label %></span><span><strong><%= s.count %></strong> · <%= fmtMoney(s.total) %></span></div>
+        <div class="bar"><span style="width:<%= Math.round(s.count / maxCount * 100) %>%; background:<%= s.color %>"></span></div>
+      </div>
+    <% }) %>
+  </div>
+  <div class="card">
+    <h2>Leads por fuente</h2>
+    <% if (!stats.sources.length) { %><div class="empty">Sin datos en este periodo.</div><% } %>
+    <table>
+      <% if (stats.sources.length) { %><thead><tr><th>Fuente</th><th class="right">Leads</th><th class="right">Ventas</th><th class="right">Conversión</th></tr></thead><% } %>
+      <% stats.sources.forEach(function (s) { %>
+        <tr><td><%= s.source %></td><td class="right"><%= s.n %></td><td class="right"><%= s.won %></td><td class="right"><%= fmtPercent(s.n ? s.won / s.n : 0) %></td></tr>
+      <% }) %>
+    </table>
+  </div>
+</div>
+
+<% if (team) { %>
+  <div class="card" style="margin-top:16px">
+    <h2>Rendimiento por usuario</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Usuario</th><th class="right">Leads</th><th class="right">Citas</th><th class="right">Asistencia</th><th class="right">Ventas</th><th class="right">Ingresos</th><th class="right">Conversión</th><th class="right">SMS enviados</th><th class="right">Pipeline abierto</th></tr></thead>
+        <tbody>
+          <% team.forEach(function (r) { %>
+            <tr>
+              <td><a href="?range=<%= range %>&user=<%= r.user.id %>"><strong><%= r.user.name %></strong></a><% if (!r.user.active) { %> <span class="badge">inactivo</span><% } %></td>
+              <td class="right"><%= r.stats.newContacts %></td>
+              <td class="right"><%= r.stats.apptTotal %></td>
+              <td class="right"><%= fmtPercent(r.stats.showRate) %></td>
+              <td class="right"><%= r.stats.wonCount %></td>
+              <td class="right"><strong><%= fmtMoney(r.stats.revenue) %></strong></td>
+              <td class="right"><%= fmtPercent(r.stats.leadToSale) %></td>
+              <td class="right"><%= r.stats.smsOut %></td>
+              <td class="right"><%= fmtMoney(r.stats.openValue) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-box" style="margin-top:16px; height:<%= Math.max(160, team.length * 44) %>px"><canvas id="chart-team" aria-label="Ingresos por usuario"></canvas></div>
+  </div>
+<% } %>
+
+<script type="application/json" id="chart-data"><%- JSON.stringify(chartData).replace(/</g, '\\u003c') %></script>
+<script src="/vendor/chart.js/chart.umd.min.js"></script>
+<script src="/static/js/analytics.js"></script>
+<%- include('partials/footer') %>

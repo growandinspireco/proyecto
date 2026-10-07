@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Propiedades</h1>
+    <div class="muted small"><%= isAdmin ? 'Administra el inventario y quién puede verlo.' : 'Propiedades a las que tienes acceso.' %></div>
+  </div>
+  <% if (isAdmin) { %><div class="actions"><a class="btn btn-primary" href="/properties/new">+ Agregar propiedad</a></div><% } %>
+</div>
+<form class="filters" method="get">
+  <input type="search" name="q" placeholder="Buscar por nombre, dirección o ciudad" value="<%= query.q || '' %>">
+  <select name="status"><option value="">Todos los estados</option><% statuses.forEach(function (s) { %><option value="<%= s.key %>" <%= query.status === s.key ? 'selected' : '' %>><%= s.label %></option><% }) %></select>
+  <button class="btn">Filtrar</button>
+</form>
+<% if (!properties.length) { %><div class="card empty"><%= isAdmin ? 'Aún no hay propiedades. Agrega la primera.' : 'No tienes propiedades asignadas. Pide acceso al administrador.' %></div><% } %>
+<div class="grid grid-3">
+  <% properties.forEach(function (p) { %>
+    <div class="card" style="margin:0">
+      <div style="display:flex; justify-content:space-between; gap:8px; align-items:start">
+        <a href="/properties/<%= p.id %>"><h3><%= p.title %></h3></a>
+        <span class="badge <%= p.status === 'disponible' ? 'badge-green' : p.status === 'apartada' ? 'badge-yellow' : 'badge-gray' %>"><%= propStatus(p.status) %></span>
+      </div>
+      <div class="muted small"><%= [p.kind, p.address, p.city].filter(Boolean).join(' · ') %></div>
+      <div style="font-size:20px; font-weight:700; margin:8px 0"><%= fmtMoney(p.price) %></div>
+      <div class="small muted">
+        <%= p.bedrooms != null ? p.bedrooms + ' rec · ' : '' %><%= p.bathrooms != null ? p.bathrooms + ' baños · ' : '' %><%= p.area_m2 != null ? p.area_m2 + ' m²' : '' %>
+      </div>
+      <div class="small" style="margin-top:8px">👥 <%= p.interested %> interesados</div>
+      <% if (isAdmin) { %><div class="small muted" style="margin-top:4px">🔐 Acceso: <%= p.access_names || 'solo administradores' %></div><% } %>
+    </div>
+  <% }) %>
+</div>
+<%- include('../partials/footer') %>

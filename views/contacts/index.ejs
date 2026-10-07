@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Contactos <span class="muted small">(<%= contacts.length %>)</span></h1>
+  <div class="actions"><a class="btn btn-primary" href="/contacts/new">+ Nuevo contacto</a></div>
+</div>
+<form class="filters" method="get">
+  <input type="search" name="q" placeholder="Buscar nombre, teléfono, correo o etiqueta" value="<%= query.q || '' %>">
+  <select name="stage">
+    <option value="">Todas las etapas</option>
+    <% STAGES.forEach(function (s) { %><option value="<%= s.key %>" <%= query.stage === s.key ? 'selected' : '' %>><%= s.label %></option><% }) %>
+  </select>
+  <% if (isAdmin) { %>
+    <select name="owner">
+      <option value="">Todos los usuarios</option>
+      <% users.forEach(function (u) { %><option value="<%= u.id %>" <%= String(query.owner) === String(u.id) ? 'selected' : '' %>><%= u.name %></option><% }) %>
+    </select>
+  <% } %>
+  <button class="btn">Filtrar</button>
+</form>
+<div class="card table-wrap" style="padding:0">
+  <table>
+    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Etapa</th><th>Valor</th><th>Próxima cita</th><% if (isAdmin) { %><th>Asignado a</th><% } %><th>Actividad</th></tr></thead>
+    <tbody>
+      <% if (!contacts.length) { %><tr><td colspan="7" class="empty">No hay contactos todavía.</td></tr><% } %>
+      <% contacts.forEach(function (c) { %>
+        <tr>
+          <td>
+            <div class="person">
+              <div class="avatar"><%= initials(fullName(c)) %></div>
+              <div>
+                <a href="/contacts/<%= c.id %>"><strong><%= fullName(c) %></strong></a>
+                <div class="small muted"><%= c.email || '' %><%= c.property_title ? ' · 🏠 ' + c.property_title : '' %></div>
+              </div>
+            </div>
+          </td>
+          <td class="nowrap"><%= fmtPhone(c.phone) %> <% if (c.phone) { %><a class="small" href="/conversations/<%= c.id %>">SMS</a><% } %></td>
+          <td><span class="badge badge-stage" style="background:<%= stage(c.stage).color %>"><%= stage(c.stage).label %></span></td>
+          <td class="nowrap"><%= c.deal_value ? fmtMoney(c.deal_value) : '—' %></td>
+          <td class="nowrap small"><%= c.next_appt ? fmtDateTime(c.next_appt) : '—' %></td>
+          <% if (isAdmin) { %><td><%= c.owner_name || '—' %></td><% } %>
+          <td class="small muted nowrap"><%= fmtRelative(c.last_activity_at || c.created_at) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/footer') %>

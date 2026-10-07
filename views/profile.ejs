@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+<div class="page-head"><h1>Mi perfil</h1></div>
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+<div class="grid grid-2">
+  <form class="card" style="margin:0" method="post" action="/profile">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <h2>Datos</h2>
+    <div class="field"><label>Nombre</label><input type="text" name="name" value="<%= currentUser.name %>" required></div>
+    <div class="field"><label>Correo</label><input type="email" value="<%= currentUser.email %>" disabled></div>
+    <div class="field"><label>Celular personal</label><input type="tel" name="phone" value="<%= currentUser.phone || '' %>"></div>
+    <div class="field">
+      <label>Mi número para SMS</label>
+      <input type="tel" name="sms_number" value="<%= currentUser.sms_number || '' %>" placeholder="+52...">
+      <div class="small muted" style="margin-top:4px">Número de Twilio desde el que envías y recibes los SMS de tus clientes. Los mensajes que lleguen a este número entran a tus conversaciones.</div>
+    </div>
+    <button class="btn btn-primary">Guardar</button>
+  </form>
+  <form class="card" style="margin:0" method="post" action="/profile/password">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <h2><%= currentUser.password_hash ? 'Cambiar contraseña' : 'Crear contraseña' %></h2>
+    <% if (currentUser.password_hash) { %><div class="field"><label>Contraseña actual</label><input type="password" name="current" required autocomplete="current-password"></div><% } else { %><p class="small muted">Entras con Google. Puedes crear una contraseña para entrar también con tu correo.</p><% } %>
+    <div class="field"><label>Nueva contraseña (mín. 8)</label><input type="password" name="password" minlength="8" required autocomplete="new-password"></div>
+    <button class="btn">Guardar contraseña</button>
+  </form>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+<div class="page-head"><h1><%= title %></h1></div>
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+<form class="card" style="max-width:760px" method="post" action="<%= contact.id ? '/contacts/' + contact.id : '/contacts' %>">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="row">
+    <div class="field"><label>Nombre *</label><input type="text" name="first_name" value="<%= contact.first_name || '' %>" required></div>
+    <div class="field"><label>Apellidos</label><input type="text" name="last_name" value="<%= contact.last_name || '' %>"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Teléfono (para SMS)</label><input type="tel" name="phone" value="<%= contact.phone || '' %>" placeholder="55 1234 5678 o +52..."></div>
+    <div class="field"><label>Correo</label><input type="email" name="email" value="<%= contact.email || '' %>"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Etapa</label>
+      <select name="stage"><% STAGES.forEach(function (s) { %><option value="<%= s.key %>" <%= contact.stage === s.key ? 'selected' : '' %>><%= s.label %></option><% }) %></select>
+    </div>
+    <div class="field"><label>Valor estimado de venta</label><input type="number" min="0" step="any" name="deal_value" value="<%= contact.deal_value || '' %>"></div>
+    <div class="field"><label>Fuente</label>
+      <select name="source"><option value="">—</option><% sources.forEach(function (s) { %><option <%= contact.source === s ? 'selected' : '' %>><%= s %></option><% }) %></select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Propiedad de interés</label>
+      <select name="property_id"><option value="">—</option><% properties.forEach(function (p) { %><option value="<%= p.id %>" <%= contact.property_id === p.id ? 'selected' : '' %>><%= p.title %> (<%= propStatus(p.status) %>)</option><% }) %></select>
+    </div>
+    <% if (isAdmin) { %>
+      <div class="field"><label>Asignado a</label>
+        <select name="owner_id"><% users.forEach(function (u) { %><option value="<%= u.id %>" <%= contact.owner_id === u.id ? 'selected' : '' %>><%= u.name %></option><% }) %></select>
+      </div>
+    <% } %>
+  </div>
+  <div class="field"><label>Etiquetas (separadas por coma)</label><input type="text" name="tags" value="<%= contact.tags || '' %>" placeholder="vip, crédito hipotecario"></div>
+  <div class="field"><label>Notas</label><textarea name="notes"><%= contact.notes || '' %></textarea></div>
+  <button class="btn btn-primary" type="submit">Guardar</button>
+  <a class="btn" href="<%= contact.id ? '/contacts/' + contact.id : '/contacts' %>">Cancelar</a>
+</form>
+<%- include('../partials/footer') %>

@@ -1,0 +1,84 @@
+<%- include('partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Conversaciones SMS</h1>
+    <div class="small muted">
+      <% if (smsLive) { %>Twilio conectado<% if (locals.fromNumber) { %> · enviando desde <strong><%= fmtPhone(fromNumber) %></strong><% } else { %> · <span style="color:var(--danger)">configura tu número SMS en <a href="/profile">Mi perfil</a></span><% } %>
+      <% } else { %>Modo simulación: los mensajes se guardan pero no se envían. Configura Twilio en <code>.env</code> para SMS reales.<% } %>
+    </div>
+  </div>
+  <form method="get" action="/conversations/new" class="actions">
+    <select name="contact" style="width:auto; max-width:260px" required>
+      <option value="">Nueva conversación…</option>
+      <% contacts.forEach(function (c) { %><option value="<%= c.id %>"><%= fullName(c) %> · <%= fmtPhone(c.phone) %></option><% }) %>
+    </select>
+    <button class="btn btn-primary">Abrir</button>
+  </form>
+</div>
+<div class="inbox">
+  <div class="threads">
+    <form class="search" method="get" action="/conversations"><input type="search" name="q" value="<%= q %>" placeholder="Buscar…"></form>
+    <% if (!threads.length) { %><div class="empty">Sin conversaciones.</div><% } %>
+    <% threads.forEach(function (t) { %>
+      <a class="thread <%= active && active.id === t.id ? 'active' : '' %>" href="/conversations/<%= t.id %>">
+        <div class="avatar"><%= initials(fullName(t)) %></div>
+        <div class="body">
+          <div style="display:flex; justify-content:space-between; gap:6px">
+            <strong><%= fullName(t) %></strong><span class="small muted nowrap"><%= fmtRelative(t.last_at) %></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; gap:6px">
+            <span class="preview"><%= t.last_direction === 'out' ? 'Tú: ' : '' %><%= t.last_body %></span>
+            <% if (t.unread) { %><span class="pill-count"><%= t.unread %></span><% } %>
+          </div>
+        </div>
+      </a>
+    <% }) %>
+  </div>
+  <div class="chat">
+    <% if (!active) { %>
+      <div class="empty" style="margin:auto">Selecciona una conversación o inicia una nueva.</div>
+    <% } else { %>
+      <div class="chat-head">
+        <div>
+          <a href="/contacts/<%= active.id %>"><strong><%= fullName(active) %></strong></a>
+          <div class="small muted"><%= fmtPhone(active.phone) %> · <span class="badge badge-stage" style="background:<%= stage(active.stage).color %>"><%= stage(active.stage).label %></span></div>
+        </div>
+        <a class="btn btn-sm" href="/contacts/<%= active.id %>">Ver contacto</a>
+      </div>
+      <div class="chat-body" id="chat-body" data-contact="<%= active.id %>" data-last="<%= messages.length ? messages[messages.length - 1].id : 0 %>">
+        <% if (!messages.length) { %><div class="empty" id="chat-empty">Aún no hay mensajes. ¡Escribe el primero!</div><% } %>
+        <% messages.forEach(function (m) { %>
+          <div class="bubble <%= m.direction %>"><%= m.body %><div class="meta"><%= fmtDateTime(m.created_at) %><%= m.direction === 'out' ? ' · ' + msgStatus(m.status) + (m.user_name ? ' · ' + m.user_name : '') : '' %><%= m.error ? ' · ' + m.error : '' %></div></div>
+        <% }) %>
+      </div>
+      <div class="chat-compose">
+        <% if (active.sms_opt_out) { %>
+          <div class="alert alert-error" style="margin:0">Este contacto respondió STOP y no puede recibir SMS.</div>
+        <% } else if (!active.phone) { %>
+          <div class="muted">Este contacto no tiene teléfono.</div>
+        <% } else { %>
+          <div class="templates">
+            <% templates.forEach(function (t) { %><button type="button" class="btn btn-sm" data-template="<%= t.body %>" data-target="#compose"><%= t.name %></button><% }) %>
+          </div>
+          <form method="post" action="/contacts/<%= active.id %>/sms">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="redirect" value="conversation">
+            <textarea id="compose" name="body" maxlength="1600" placeholder="Escribe un mensaje… (Enter para enviar, Shift+Enter para salto de línea)" required data-enter-submit></textarea>
+            <button class="btn btn-primary">Enviar</button>
+          </form>
+        <% } %>
+      </div>
+      <% if (!smsLive && active.phone) { %>
+        <div class="simulate">
+          <div class="small" style="margin-bottom:4px"><strong>🧪 Prueba:</strong> simula una respuesta del cliente (como si te escribiera por SMS). Prueba responder <strong>SI</strong> para confirmar su cita.</div>
+          <form method="post" action="/conversations/<%= active.id %>/simulate">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="text" name="body" placeholder="Respuesta del cliente…" required>
+            <button class="btn btn-sm">Simular respuesta</button>
+          </form>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,81 @@
+<%- include('partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Citas</h1>
+    <div class="muted small">Semana del <%= fmtDate(days[0].date) %> al <%= fmtDate(days[6].date) %></div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="/appointments?week=<%= prevWeek %><%= filterUser ? '&user=' + filterUser : '' %>">← Anterior</a>
+    <a class="btn" href="/appointments<%= filterUser ? '?user=' + filterUser : '' %>">Hoy</a>
+    <a class="btn" href="/appointments?week=<%= nextWeek %><%= filterUser ? '&user=' + filterUser : '' %>">Siguiente →</a>
+    <% if (isAdmin) { %>
+      <form method="get" style="margin:0">
+        <input type="hidden" name="week" value="<%= weekLabel %>">
+        <select name="user" data-autosubmit style="width:auto">
+          <option value="">Todo el equipo</option>
+          <% users.forEach(function (u) { %><option value="<%= u.id %>" <%= filterUser === u.id ? 'selected' : '' %>><%= u.name %></option><% }) %>
+        </select>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<div class="week">
+  <% days.forEach(function (d) { %>
+    <div class="day <%= d.date === today ? 'today' : '' %>">
+      <div class="day-head"><%= fmtDate(d.date).split(' ').slice(0, 3).join(' ') %></div>
+      <% d.items.forEach(function (a) { %>
+        <div class="appt <%= a.status %>" id="a<%= a.id %>">
+          <div class="time"><%= fmtTime(a.starts_at) %> · <%= a.duration_min %> min</div>
+          <div><a href="/contacts/<%= a.contact_id %>"><%= a.first_name %> <%= a.last_name || '' %></a></div>
+          <div class="muted"><%= a.title %><%= a.property_title ? ' · ' + a.property_title : '' %></div>
+          <% if (isAdmin && a.user_name) { %><div class="muted">👤 <%= a.user_name %></div><% } %>
+          <div class="muted"><%= apptStatus(a.status) %></div>
+          <div class="appt-actions">
+            <% if (['programada','confirmada'].includes(a.status)) { %>
+              <% [['confirmada','Confirmar'],['completada','Asistió'],['no_show','No vino'],['cancelada','Cancelar']].forEach(function (s) { if (s[0] === a.status) return; %>
+                <form method="post" action="/appointments/<%= a.id %>/status" class="inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="status" value="<%= s[0] %>"><button><%= s[1] %></button></form>
+              <% }) %>
+            <% } %>
+            <a href="/appointments/<%= a.id %>/edit" class="small">Editar</a>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% }) %>
+</div>
+
+<div class="card" style="margin-top:16px; max-width:900px">
+  <h2>Agendar nueva cita</h2>
+  <% if (!contacts.length) { %>
+    <div class="muted">Primero <a href="/contacts/new">crea un contacto</a>.</div>
+  <% } else { %>
+  <form method="post" action="/appointments">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="row">
+      <div class="field"><label>Contacto *</label>
+        <select name="contact_id" required><option value="">Selecciona…</option><% contacts.forEach(function (c) { %><option value="<%= c.id %>" <%= preset.contact_id === c.id ? 'selected' : '' %>><%= fullName(c) %> <%= c.phone ? '· ' + fmtPhone(c.phone) : '' %></option><% }) %></select>
+      </div>
+      <div class="field"><label>Título</label><input type="text" name="title" value="Reunión de ventas"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Fecha y hora *</label><input type="datetime-local" name="starts_at" required></div>
+      <div class="field"><label>Duración</label><select name="duration_min"><option value="30">30 min</option><option value="60" selected>1 hora</option><option value="90">1.5 horas</option><option value="120">2 horas</option></select></div>
+      <div class="field"><label>Lugar</label><input type="text" name="location" placeholder="Oficina, Zoom, dirección…"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Propiedad (opcional)</label>
+        <select name="property_id"><option value="">—</option><% properties.forEach(function (p) { %><option value="<%= p.id %>"><%= p.title %></option><% }) %></select>
+      </div>
+      <% if (isAdmin) { %>
+        <div class="field"><label>Asignar a</label><select name="user_id"><% users.forEach(function (u) { %><option value="<%= u.id %>" <%= currentUser.id === u.id ? 'selected' : '' %>><%= u.name %></option><% }) %></select></div>
+      <% } %>
+    </div>
+    <div class="field"><label>Notas</label><textarea name="notes"></textarea></div>
+    <label class="check"><input type="checkbox" name="send_sms" checked> Enviar SMS de confirmación al cliente</label>
+    <p class="small muted">Se envía un recordatorio automático por SMS antes de la cita. El cliente puede responder <strong>SI</strong> para confirmar.</p>
+    <button class="btn btn-primary">Agendar cita</button>
+  </form>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

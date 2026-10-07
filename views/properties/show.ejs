@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <div>
+    <h1><%= property.title %></h1>
+    <div class="muted"><%= [property.kind, property.address, property.city].filter(Boolean).join(' · ') %></div>
+  </div>
+  <% if (isAdmin) { %>
+    <div class="actions">
+      <a class="btn" href="/properties/<%= property.id %>/edit">Editar y accesos</a>
+      <form method="post" action="/properties/<%= property.id %>/delete" class="inline" data-confirm="¿Eliminar esta propiedad?"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-danger">Eliminar</button></form>
+    </div>
+  <% } %>
+</div>
+<div class="grid grid-side">
+  <div>
+    <div class="card">
+      <div style="display:flex; gap:24px; flex-wrap:wrap">
+        <div><div class="muted small">Precio</div><div style="font-size:22px; font-weight:700"><%= fmtMoney(property.price) %></div></div>
+        <div><div class="muted small">Estado</div><span class="badge <%= property.status === 'disponible' ? 'badge-green' : property.status === 'apartada' ? 'badge-yellow' : 'badge-gray' %>"><%= propStatus(property.status) %></span></div>
+        <div><div class="muted small">Recámaras</div><%= property.bedrooms != null ? property.bedrooms : '—' %></div>
+        <div><div class="muted small">Baños</div><%= property.bathrooms != null ? property.bathrooms : '—' %></div>
+        <div><div class="muted small">Superficie</div><%= property.area_m2 != null ? property.area_m2 + ' m²' : '—' %></div>
+      </div>
+      <% if (property.description) { %><p style="white-space:pre-wrap"><%= property.description %></p><% } %>
+    </div>
+    <div class="card">
+      <h2>Clientes interesados</h2>
+      <% if (!interested.length) { %><div class="empty">Nadie aún.</div><% } %>
+      <ul class="list">
+        <% interested.forEach(function (c) { %>
+          <li>
+            <div><a href="/contacts/<%= c.id %>"><strong><%= fullName(c) %></strong></a><div class="small muted"><%= fmtPhone(c.phone) %><%= isAdmin && c.owner_name ? ' · ' + c.owner_name : '' %></div></div>
+            <span class="badge badge-stage" style="background:<%= stage(c.stage).color %>"><%= stage(c.stage).label %></span>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Acceso</h2>
+    <p class="small muted">Usuarios que pueden ver y ofrecer esta propiedad (además de los administradores).</p>
+    <% if (!access.length) { %><div class="empty">Solo administradores.</div><% } %>
+    <ul class="list"><% access.forEach(function (u) { %><li><span><%= u.name %></span><span class="badge"><%= u.role === 'admin' ? 'Admin' : 'Agente' %></span></li><% }) %></ul>
+  </div>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,111 @@
+<%- include('partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Hola, <%= currentUser.name.split(' ')[0] %> 👋</h1>
+    <div class="muted"><%= isAdmin ? 'Resumen general del equipo' : 'Tu resumen' %> de este mes</div>
+  </div>
+  <div class="actions">
+    <a class="btn btn-primary" href="/contacts/new">+ Nuevo contacto</a>
+    <a class="btn" href="/appointments">Agendar cita</a>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">Leads nuevos</div><div class="value"><%= stats.newContacts %></div><div class="sub">este mes</div></div>
+  <div class="kpi"><div class="label">Citas</div><div class="value"><%= stats.apptTotal %></div><div class="sub">asistencia <%= fmtPercent(stats.showRate) %></div></div>
+  <div class="kpi"><div class="label">Ventas cerradas</div><div class="value"><%= stats.wonCount %></div><div class="sub">conversión <%= fmtPercent(stats.leadToSale) %></div></div>
+  <div class="kpi"><div class="label">Ingresos</div><div class="value"><%= fmtMoney(stats.revenue) %></div><div class="sub">ticket prom. <%= fmtMoney(stats.avgTicket) %></div></div>
+  <div class="kpi"><div class="label">Pipeline abierto</div><div class="value"><%= fmtMoney(stats.openValue) %></div><div class="sub">valor potencial</div></div>
+</div>
+
+<div class="grid grid-side">
+  <div>
+    <div class="card">
+      <h2>Citas de hoy</h2>
+      <% if (!todayAppts.length) { %><div class="empty">No hay citas hoy.</div><% } %>
+      <ul class="list">
+        <% todayAppts.forEach(function (a) { %>
+          <li>
+            <div class="person">
+              <div class="avatar"><%= fmtTime(a.starts_at).split(' ')[0] %></div>
+              <div>
+                <a href="/contacts/<%= a.contact_id %>"><strong><%= a.first_name %> <%= a.last_name || '' %></strong></a>
+                <div class="small muted"><%= a.title %><%= a.property_title ? ' · ' + a.property_title : '' %><%= isAdmin && a.user_name ? ' · ' + a.user_name : '' %></div>
+              </div>
+            </div>
+            <div class="nowrap">
+              <span class="badge <%= a.status === 'confirmada' ? 'badge-green' : a.status === 'completada' ? 'badge-gray' : a.status === 'no_show' ? 'badge-red' : 'badge-blue' %>"><%= apptStatus(a.status) %></span>
+              <% if (['programada','confirmada'].includes(a.status)) { %>
+                <form method="post" action="/appointments/<%= a.id %>/status" class="inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="status" value="completada">
+                  <button class="btn btn-sm">✓ Asistió</button>
+                </form>
+                <form method="post" action="/appointments/<%= a.id %>/status" class="inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="status" value="no_show">
+                  <button class="btn btn-sm">No vino</button>
+                </form>
+              <% } %>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Necesitan seguimiento <span class="small muted">(sin actividad en 3+ días)</span></h2>
+      <% if (!stale.length) { %><div class="empty">¡Todo al día! 🎉</div><% } %>
+      <ul class="list">
+        <% stale.forEach(function (c) { %>
+          <li>
+            <div class="person">
+              <div class="avatar"><%= initials(fullName(c)) %></div>
+              <div>
+                <a href="/contacts/<%= c.id %>"><strong><%= fullName(c) %></strong></a>
+                <div class="small muted"><%= fmtPhone(c.phone) %> · última actividad <%= fmtRelative(c.last_activity_at || c.created_at) %></div>
+              </div>
+            </div>
+            <span class="badge badge-stage" style="background:<%= stage(c.stage).color %>"><%= stage(c.stage).label %></span>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Mensajes sin leer</h2>
+      <% if (!unread.length) { %><div class="empty">No hay mensajes nuevos.</div><% } %>
+      <ul class="list">
+        <% unread.forEach(function (u) { %>
+          <li>
+            <div style="min-width:0">
+              <a href="/conversations/<%= u.id %>"><strong><%= u.first_name %> <%= u.last_name || '' %></strong></a>
+              <div class="small muted" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px"><%= u.last_body %></div>
+            </div>
+            <span class="pill-count"><%= u.n %></span>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Mis tareas</h2>
+      <% if (!tasks.length) { %><div class="empty">Sin tareas pendientes.</div><% } %>
+      <ul class="list">
+        <% tasks.forEach(function (t) { %>
+          <li>
+            <div>
+              <div><%= t.title %></div>
+              <div class="small <%= t.due_at && t.due_at < now ? '' : 'muted' %>" style="<%= t.due_at && t.due_at < now ? 'color:var(--danger)' : '' %>">
+                <% if (t.contact_id) { %><a href="/contacts/<%= t.contact_id %>"><%= t.first_name %> <%= t.last_name || '' %></a> · <% } %>
+                <%= t.due_at ? fmtDateTime(t.due_at) : 'sin fecha' %>
+              </div>
+            </div>
+            <form method="post" action="/tasks/<%= t.id %>/toggle"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-sm">Hecha</button></form>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

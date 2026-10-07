@@ -1,0 +1,34 @@
+<%- include('partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Pipeline de ventas</h1>
+    <div class="muted small">Arrastra las tarjetas entre columnas para avanzar cada oportunidad.</div>
+  </div>
+  <div class="actions">
+    <% if (isAdmin) { %>
+      <form method="get" class="filters" style="margin:0">
+        <select name="owner" data-autosubmit>
+          <option value="">Todo el equipo</option>
+          <% users.forEach(function (u) { %><option value="<%= u.id %>" <%= owner === u.id ? 'selected' : '' %>><%= u.name %></option><% }) %>
+        </select>
+      </form>
+    <% } %>
+    <a class="btn btn-primary" href="/contacts/new">+ Nuevo lead</a>
+  </div>
+</div>
+<div class="board" id="board">
+  <% columns.forEach(function (col) { %>
+    <div class="column" data-stage="<%= col.key %>">
+      <div class="column-head"><span><span class="dot" style="background:<%= col.color %>"></span><%= col.label %></span><span class="badge"><%= col.items.length %></span></div>
+      <div class="column-sum"><%= fmtMoney(col.total) %></div>
+      <% col.items.forEach(function (c) { %>
+        <div class="deal" draggable="true" data-id="<%= c.id %>" data-value="<%= c.deal_value || 0 %>">
+          <a class="name" href="/contacts/<%= c.id %>"><%= fullName(c) %></a>
+          <div class="meta"><%= c.deal_value ? fmtMoney(c.deal_value) : 'Sin valor' %><%= c.property_title ? ' · ' + c.property_title : '' %></div>
+          <div class="meta"><%= isAdmin && c.owner_name ? c.owner_name + ' · ' : '' %><%= fmtRelative(c.last_activity_at || c.created_at) %></div>
+        </div>
+      <% }) %>
+    </div>
+  <% }) %>
+</div>
+<%- include('partials/footer') %>

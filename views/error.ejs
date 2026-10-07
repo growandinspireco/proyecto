@@ -1,0 +1,15 @@
+<% if (locals.currentUser) { %>
+<%- include('partials/header') %>
+<div class="card" style="max-width:520px">
+  <h1><%= title %></h1>
+  <p><%= message %></p>
+  <a class="btn" href="/">Volver al inicio</a>
+</div>
+<%- include('partials/footer') %>
+<% } else { %>
+<%- include('partials/auth-head', { title: title }) %>
+  <h1><%= title %></h1>
+  <p><%= message %></p>
+  <a class="btn" href="/login">Ir al inicio de sesión</a>
+  </div></div></body></html>
+<% } %>

@@ -1,0 +1,39 @@
+<%- include('../partials/header') %>
+<div class="page-head"><h1>Editar usuario</h1><a class="btn" href="/users">← Volver</a></div>
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+<div class="grid grid-2">
+  <form class="card" style="margin:0" method="post" action="/users/<%= user.id %>">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field"><label>Nombre</label><input type="text" name="name" value="<%= user.name %>" required></div>
+    <div class="field"><label>Correo</label><input type="email" name="email" value="<%= user.email %>" required></div>
+    <div class="row">
+      <div class="field"><label>Rol</label><select name="role"><option value="agent">Agente</option><option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Administrador</option></select></div>
+      <div class="field"><label>Número SMS</label><input type="tel" name="sms_number" value="<%= user.sms_number || '' %>"></div>
+      <div class="field"><label>Celular</label><input type="tel" name="phone" value="<%= user.phone || '' %>"></div>
+    </div>
+    <div class="field"><label>Nueva contraseña</label><input type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Déjalo vacío para no cambiarla"></div>
+    <label class="check"><input type="checkbox" name="active" <%= user.active ? 'checked' : '' %>> Usuario activo (puede iniciar sesión)</label>
+    <div class="field" style="margin-top:14px">
+      <label>Propiedades a las que tiene acceso</label>
+      <% if (user.role === 'admin') { %><p class="small muted" style="margin-top:0">Los administradores ven todas las propiedades.</p><% } %>
+      <p class="small" style="margin-top:0"><a href="#" data-check-all="properties">Seleccionar todas</a></p>
+      <div class="checks">
+        <% properties.forEach(function (p) { %><label class="check"><input type="checkbox" name="properties" value="<%= p.id %>" <%= p.has_access ? 'checked' : '' %>> <%= p.title %></label><% }) %>
+      </div>
+      <% if (!properties.length) { %><div class="muted small">No hay propiedades registradas.</div><% } %>
+    </div>
+    <button class="btn btn-primary">Guardar cambios</button>
+  </form>
+  <div class="card" style="margin:0">
+    <h2>Reasignar contactos</h2>
+    <p class="small muted">Mueve todos los contactos y citas pendientes de <%= user.name %> a otra persona (por ejemplo, si deja el equipo).</p>
+    <form method="post" action="/users/<%= user.id %>/reassign" data-confirm="¿Reasignar todos los contactos?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field"><select name="to_user" required><option value="">Selecciona usuario…</option>
+        <% otherUsers.forEach(function (u) { %><option value="<%= u.id %>"><%= u.name %></option><% }) %>
+      </select></div>
+      <button class="btn">Reasignar</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/footer') %>

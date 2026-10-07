@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <div>
+    <h1>Usuarios y accesos</h1>
+    <div class="muted small">Da de alta a tu equipo, asigna roles, su número de SMS y las propiedades que pueden ver.</div>
+  </div>
+</div>
+<div class="grid grid-side">
+  <div class="card table-wrap" style="padding:0">
+    <table>
+      <thead><tr><th>Usuario</th><th>Rol</th><th>Número SMS</th><th class="right">Contactos</th><th class="right">Propiedades</th><th>Último acceso</th><th></th></tr></thead>
+      <tbody>
+        <% users.forEach(function (u) { %>
+          <tr style="<%= u.active ? '' : 'opacity:.55' %>">
+            <td><div class="person"><div class="avatar"><%= initials(u.name) %></div><div><strong><%= u.name %></strong><div class="small muted"><%= u.email %><%= u.google_id ? ' · Google' : '' %></div></div></div></td>
+            <td><span class="badge <%= u.role === 'admin' ? 'badge-blue' : '' %>"><%= u.role === 'admin' ? 'Admin' : 'Agente' %></span><% if (!u.active) { %> <span class="badge badge-red">Inactivo</span><% } %></td>
+            <td class="nowrap"><%= u.sms_number ? fmtPhone(u.sms_number) : '—' %></td>
+            <td class="right"><%= u.contacts %></td>
+            <td class="right"><%= u.role === 'admin' ? 'Todas' : u.properties %></td>
+            <td class="small muted nowrap"><%= u.last_login_at ? fmtRelative(u.last_login_at) : 'Nunca' %></td>
+            <td><a class="btn btn-sm" href="/users/<%= u.id %>/edit">Editar</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Agregar usuario</h2>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <form method="post" action="/users">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field"><label>Nombre *</label><input type="text" name="name" value="<%= values.name || '' %>" required></div>
+      <div class="field"><label>Correo *</label><input type="email" name="email" value="<%= values.email || '' %>" required></div>
+      <div class="field"><label>Rol</label><select name="role"><option value="agent">Agente (ve solo sus contactos)</option><option value="admin" <%= values.role === 'admin' ? 'selected' : '' %>>Administrador (ve todo)</option></select></div>
+      <div class="field"><label>Contraseña temporal</label><input type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Opcional si entrará con Google"></div>
+      <div class="field"><label>Número SMS (Twilio)</label><input type="tel" name="sms_number" value="<%= values.sms_number || '' %>" placeholder="+52..."></div>
+      <div class="field"><label>Celular personal</label><input type="tel" name="phone" value="<%= values.phone || '' %>"></div>
+      <label class="check"><input type="checkbox" name="all_properties" checked> Dar acceso a todas las propiedades actuales</label>
+      <div style="margin-top:12px"><button class="btn btn-primary btn-block">Crear usuario</button></div>
+    </form>
+  </div>
+</div>
+<%- include('../partials/footer') %>

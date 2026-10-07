@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' ? title + ' · ' : '' %><%= appName %></title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body data-csrf="<%= csrfToken %>">
+<div class="mobile-top">
+  <strong><%= appName %></strong>
+  <button type="button" data-toggle-sidebar>Menú</button>
+</div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="logo">C</span><%= appName %></div>
+    <nav class="nav">
+      <% const navItem = (href, label, extra) => { const active = href === '/' ? path === '/' : path.startsWith(href); %>
+        <a href="<%= href %>" class="<%= active ? 'active' : '' %>"><span><%= label %></span><%- extra || '' %></a>
+      <% } %>
+      <% navItem('/', 'Inicio') %>
+      <% navItem('/contacts', 'Contactos') %>
+      <% navItem('/pipeline', 'Pipeline de ventas') %>
+      <% navItem('/appointments', 'Citas') %>
+      <% navItem('/conversations', 'Conversaciones SMS', unreadCount ? `<span class="pill-count">${unreadCount}</span>` : '') %>
+      <% navItem('/properties', 'Propiedades') %>
+      <% navItem('/analytics', 'Analíticas') %>
+      <% if (isAdmin) { %>
+        <div class="section">Administración</div>
+        <% navItem('/users', 'Usuarios y accesos') %>
+      <% } %>
+    </nav>
+    <div class="me">
+      <div><strong><%= currentUser.name %></strong></div>
+      <div class="small muted"><%= currentUser.role === 'admin' ? 'Administrador' : 'Agente' %></div>
+      <div style="margin-top:8px; display:flex; gap:12px;">
+        <a href="/profile">Mi perfil</a>
+        <form method="post" action="/logout" class="inline">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit">Salir</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
+    <% flash.forEach(function (f) { %>
+      <div class="alert alert-<%= f.type %>"><%= f.text %></div>
+    <% }) %>

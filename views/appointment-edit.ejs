@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+<div class="page-head"><h1>Editar cita</h1></div>
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+<form class="card" style="max-width:760px" method="post" action="/appointments/<%= appt.id %>">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="row">
+    <div class="field"><label>Contacto</label>
+      <select name="contact_id"><% contacts.forEach(function (c) { %><option value="<%= c.id %>" <%= appt.contact_id === c.id ? 'selected' : '' %>><%= fullName(c) %></option><% }) %></select>
+    </div>
+    <div class="field"><label>Título</label><input type="text" name="title" value="<%= appt.title %>"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Fecha y hora</label><input type="datetime-local" name="starts_at" value="<%= toInputDateTime(appt.starts_at) %>" required></div>
+    <div class="field"><label>Duración (min)</label><input type="number" name="duration_min" min="15" max="600" value="<%= appt.duration_min %>"></div>
+    <div class="field"><label>Estado</label><select name="status"><% statuses.forEach(function (s) { %><option value="<%= s.key %>" <%= appt.status === s.key ? 'selected' : '' %>><%= s.label %></option><% }) %></select></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Lugar</label><input type="text" name="location" value="<%= appt.location || '' %>"></div>
+    <div class="field"><label>Propiedad</label>
+      <select name="property_id"><option value="">—</option><% properties.forEach(function (p) { %><option value="<%= p.id %>" <%= appt.property_id === p.id ? 'selected' : '' %>><%= p.title %></option><% }) %></select>
+    </div>
+    <% if (isAdmin) { %>
+      <div class="field"><label>Asignada a</label><select name="user_id"><% users.forEach(function (u) { %><option value="<%= u.id %>" <%= appt.user_id === u.id ? 'selected' : '' %>><%= u.name %></option><% }) %></select></div>
+    <% } %>
+  </div>
+  <div class="field"><label>Notas</label><textarea name="notes"><%= appt.notes || '' %></textarea></div>
+  <button class="btn btn-primary">Guardar</button>
+  <a class="btn" href="/appointments">Cancelar</a>
+</form>
+<form method="post" action="/appointments/<%= appt.id %>/delete" style="margin-top:12px" data-confirm="¿Eliminar esta cita?">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-danger">Eliminar cita</button>
+</form>
+<%- include('partials/footer') %>

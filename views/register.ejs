@@ -1,0 +1,16 @@
+<%- include('partials/auth-head', { title: 'Crear cuenta' }) %>
+    <h1>Crear cuenta</h1>
+    <% if (firstUser) { %><div class="alert alert-info">Eres el primer usuario: tu cuenta será <strong>administrador</strong>.</div><% } %>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <form method="post" action="/register">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field"><label>Nombre completo</label><input type="text" name="name" value="<%= values.name || '' %>" required></div>
+      <div class="field"><label>Correo</label><input type="email" name="email" value="<%= values.email || '' %>" required autocomplete="username"></div>
+      <div class="field"><label>Contraseña (mínimo 8 caracteres)</label><input type="password" name="password" minlength="8" required autocomplete="new-password"></div>
+      <button class="btn btn-primary btn-block" type="submit">Crear cuenta</button>
+    </form>
+    <p class="small" style="text-align:center"><a href="/login">Ya tengo cuenta</a></p>
+  </div>
+</div>
+</body>
+</html>

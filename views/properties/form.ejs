@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+<div class="page-head"><h1><%= title %></h1></div>
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+<form class="card" style="max-width:820px" method="post" action="<%= property.id ? '/properties/' + property.id : '/properties' %>">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="row">
+    <div class="field"><label>Nombre *</label><input type="text" name="title" value="<%= property.title || '' %>" required placeholder="Casa en Lomas del Valle"></div>
+    <div class="field"><label>Tipo</label><input type="text" name="kind" value="<%= property.kind || '' %>" placeholder="Casa, departamento, terreno…" list="kinds"></div>
+    <datalist id="kinds"><option>Casa</option><option>Departamento</option><option>Terreno</option><option>Local comercial</option><option>Oficina</option></datalist>
+  </div>
+  <div class="row">
+    <div class="field"><label>Dirección</label><input type="text" name="address" value="<%= property.address || '' %>"></div>
+    <div class="field"><label>Ciudad</label><input type="text" name="city" value="<%= property.city || '' %>"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Precio</label><input type="number" min="0" step="any" name="price" value="<%= property.price || '' %>"></div>
+    <div class="field"><label>Recámaras</label><input type="number" min="0" name="bedrooms" value="<%= property.bedrooms != null ? property.bedrooms : '' %>"></div>
+    <div class="field"><label>Baños</label><input type="number" min="0" step="0.5" name="bathrooms" value="<%= property.bathrooms != null ? property.bathrooms : '' %>"></div>
+    <div class="field"><label>m²</label><input type="number" min="0" step="any" name="area_m2" value="<%= property.area_m2 != null ? property.area_m2 : '' %>"></div>
+    <div class="field"><label>Estado</label><select name="status"><% statuses.forEach(function (s) { %><option value="<%= s.key %>" <%= property.status === s.key ? 'selected' : '' %>><%= s.label %></option><% }) %></select></div>
+  </div>
+  <div class="field"><label>Descripción</label><textarea name="description"><%= property.description || '' %></textarea></div>
+  <div class="field">
+    <label>¿Quién puede ver y trabajar esta propiedad?</label>
+    <p class="small muted" style="margin-top:0">Los administradores siempre tienen acceso. <a href="#" data-check-all="access">Seleccionar todos</a></p>
+    <div class="checks">
+      <% users.forEach(function (u) { %>
+        <label class="check"><input type="checkbox" name="access" value="<%= u.id %>" <%= access.includes(u.id) ? 'checked' : '' %>> <%= u.name %> <span class="small muted"><%= u.role === 'admin' ? '(admin)' : '' %></span></label>
+      <% }) %>
+    </div>
+  </div>
+  <button class="btn btn-primary">Guardar</button>
+  <a class="btn" href="<%= property.id ? '/properties/' + property.id : '/properties' %>">Cancelar</a>
+</form>
+<%- include('../partials/footer') %>
