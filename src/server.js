@@ -15,6 +15,13 @@ const { STAGES } = require('./constants');
 const sms = require('./sms');
 const { sendAppointmentReminders } = require('./services');
 
+// DEMO_MODE=true: si la base de datos está vacía, carga los datos de ejemplo al arrancar.
+if (process.env.DEMO_MODE === 'true' && db.prepare('SELECT COUNT(*) n FROM users').get().n === 0) {
+  const { seed, printUsers } = require('./seed');
+  seed();
+  printUsers();
+}
+
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
 

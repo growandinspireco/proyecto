@@ -16,7 +16,15 @@ CRM multiusuario para dar seguimiento a clientes desde el primer contacto hasta 
 | **Usuarios y accesos** | Roles **Administrador** (ve todo) y **Agente** (solo sus contactos, citas y propiedades asignadas). Activar/desactivar, reasignar contactos. |
 | **Seguridad** | Login con correo + contraseña (bcrypt) y/o **Google**. Solo el admin da de alta usuarios. Sesiones seguras, protección CSRF, límite de intentos de login, cabeceras de seguridad. |
 
-## Probarlo en 1 minuto
+## Publicarlo en internet (link para abrir desde cualquier lugar)
+
+1. Crea una cuenta gratis en [render.com](https://render.com) (puedes entrar con tu GitHub).
+2. **New → Blueprint** → conecta GitHub y elige el repositorio `proyecto`.
+3. Clic en **Apply**. En unos 3–5 minutos Render te da un link tipo `https://crm-ventas-xxxx.onrender.com`.
+
+Viene en modo demo (`DEMO_MODE=true`) con los usuarios de ejemplo. Plan gratis: el sitio "se duerme" tras 15 min sin uso (la primera carga tarda ~1 min) y los datos se reinician cuando se reinicia el servidor; para uso real agrega un disco persistente (plan de pago) con `DATABASE_PATH=/var/data/crm.db` y pon `DEMO_MODE=false`.
+
+## Probarlo en tu computadora
 
 Requisitos: [Node.js 20+](https://nodejs.org).
 

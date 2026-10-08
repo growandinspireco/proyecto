@@ -11,7 +11,7 @@ delete process.env.TWILIO_ACCOUNT_SID;
 delete process.env.TWILIO_AUTH_TOKEN;
 delete process.env.GOOGLE_CLIENT_ID;
 
-require('../src/seed');
+require('../src/seed').seed();
 const db = require('../src/db');
 const { start } = require('../src/server');
 const sms = require('../src/sms');

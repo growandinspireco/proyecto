@@ -8,7 +8,7 @@ function isConfigured() {
 }
 
 function baseUrl() {
-  return (process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, '');
+  return (process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, '');
 }
 
 async function sendSms({ from, to, body }) {

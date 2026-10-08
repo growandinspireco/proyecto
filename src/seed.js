@@ -4,10 +4,6 @@ const bcrypt = require('bcryptjs');
 const db = require('./db');
 const { toDbDateTime, addDays } = require('./utils');
 
-if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) {
-  console.error('Seed bloqueado en producción (borraría tus datos). Usa --force si de verdad quieres hacerlo.');
-  process.exit(1);
-}
 
 const PASSWORD = 'Demo1234!';
 const at = (days, hour = 10, min = 0) => {
@@ -16,7 +12,7 @@ const at = (days, hour = 10, min = 0) => {
   return toDbDateTime(d);
 };
 
-db.transaction(() => {
+const seed = db.transaction(() => {
   for (const t of ['tasks', 'activities', 'messages', 'appointments', 'contacts', 'property_access', 'properties', 'sessions', 'users']) db.prepare(`DELETE FROM ${t}`).run();
   db.prepare("DELETE FROM sqlite_sequence").run();
 
@@ -96,10 +92,23 @@ db.transaction(() => {
   task.run(ids[4], luis, 'Llamar a Lucía (lead nuevo)', at(0, 11));
   task.run(ids[7], luis, 'Dar seguimiento a la propuesta del local', at(1, 10));
   task.run(ids[10], admin, 'Revisar documentos de Daniela', at(-1, 17));
-})();
+});
 
-console.log('✅ Datos de ejemplo cargados.\n');
-console.log('Usuarios (contraseña para todos: ' + PASSWORD + '):');
-console.log('  admin@demo.com  → Administrador (ve todo)');
-console.log('  ana@demo.com    → Agente');
-console.log('  luis@demo.com   → Agente');
+function printUsers() {
+  console.log('✅ Datos de ejemplo cargados.\n');
+  console.log('Usuarios (contraseña para todos: ' + PASSWORD + '):');
+  console.log('  admin@demo.com  → Administrador (ve todo)');
+  console.log('  ana@demo.com    → Agente');
+  console.log('  luis@demo.com   → Agente');
+}
+
+module.exports = { seed, printUsers };
+
+if (require.main === module) {
+  if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) {
+    console.error('Seed bloqueado en producción (borraría tus datos). Usa --force si de verdad quieres hacerlo.');
+    process.exit(1);
+  }
+  seed();
+  printUsers();
+}

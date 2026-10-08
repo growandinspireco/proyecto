@@ -1,0 +1,21 @@
+# Despliegue en Render (https://render.com): New → Blueprint → elige este repositorio.
+services:
+  - type: web
+    name: crm-ventas
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22
+      - key: SESSION_SECRET
+        generateValue: true
+      # Carga los datos de ejemplo cuando la base está vacía. Ponlo en "false" para usarlo con datos reales.
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEFAULT_COUNTRY_CODE
+        value: "52"
